@@ -58,6 +58,8 @@ export class SparqlXmlParser {
     let currentBindingType: string = '';
     let currentBindingAnnotation: { language: string, direction?: 'ltr' | 'rtl' } | RDF.NamedNode | undefined;
     let currentText: string = '';
+    // RDF-: the elements of the <seq> elements being read, innermost last
+    let currentSequences: RDF.Term[][] = [];
     let currentQuotedTriples: { currentComponent?: 'subject' | 'predicate' | 'object'; components: { subject?: RDF.Term; predicate?: RDF.Term; object?: RDF.Term } }[] = [];
     parser.on("error", errorListener);
     parser.on("opentag", tag => {
@@ -84,6 +86,11 @@ export class SparqlXmlParser {
         } else {
           currentQuotedTriples[currentQuotedTriples.length - 1].currentComponent = <any>tag.name;
         }
+      } else if (tag.name === 'seq' && this.stackBeginsWith(stack, ['sparql', 'results', 'result', 'binding'])) {
+        // RDF-: a sequence term, one child element per element of the sequence
+        currentSequences.push([]);
+        currentBindingType = '';
+        currentText = '';
       } else if(this.stackBeginsWith(stack, ['sparql', 'results', 'result', 'binding'])) {
         currentBindingType = tag.name;
         if('xml:lang' in tag.attributes) {
@@ -134,12 +141,25 @@ export class SparqlXmlParser {
           } else {
             errorListener(new Error(`Incomplete quoted triple on line ${parser.line + 1}`));
           }
+        } else if (stack[stack.length - 1] === 'seq') {
+          // RDF-: the sequence of the elements read so far
+          const elements = currentSequences.pop();
+          if (elements) {
+            if (!this.dataFactory.sequence) {
+              errorListener(new Error('The data factory has no sequence(): RDF- needs rdf-data-factory-array'));
+            } else {
+              term = this.dataFactory.sequence(elements);
+            }
+          }
         } else if(currentBindingType) {
           errorListener(new Error(`Invalid term type '${currentBindingType}' on line ${parser.line + 1}`));
         }
 
         if (term) {
-          if (currentQuotedTriples.length > 0) {
+          if (currentSequences.length > 0 && stack[stack.length - 2] === 'seq') {
+            // RDF-: an element of the enclosing sequence
+            currentSequences[currentSequences.length - 1].push(term);
+          } else if (currentQuotedTriples.length > 0) {
             // If we're in a quoted triple, store the term inside the active quoted triple
             const currentQuotedTriple = currentQuotedTriples[currentQuotedTriples.length - 1];
             if (currentQuotedTriple.components[currentQuotedTriple.currentComponent]) {

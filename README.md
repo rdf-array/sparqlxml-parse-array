@@ -1,3 +1,16 @@
+<img src=".github/rdf-array-logo.png" alt="[sparqlxml-parse]" width="96" align="right">
+
+# sparqlxml-parse-array: sparqlxml-parse for RDF-
+
+**RDF-** fork of [sparqlxml-parse](https://github.com/rubensworks/sparqlxml-parse.js): a `<seq>` binding
+element, the SPARQL Results XML spelling of a **sequence** term that [jena-array](https://github.com/rdf-array/jena-array)
+and [comunica-array](https://github.com/rdf-array/comunica-array) write, holds one child element per element of the
+sequence (`<uri>`, `<bnode>`, `<literal>`, `<triple>` or a nested `<seq>`) and is parsed into
+`dataFactory.sequence(elements)` (`termType: "Sequence"`). The data factory must provide `sequence()`, as
+[rdf-data-factory-array](https://github.com/rdf-array/rdf-data-factory-array) does.
+Part of the [comunica-array](https://github.com/rdf-array/comunica-array) stack, whose doc/rdf-array.md lists the
+sibling forks.
+
 # SPARQL-Results+XML Parse
 
 [![Build status](https://github.com/rubensworks/sparqlxml-parse.js/workflows/CI/badge.svg)](https://github.com/rubensworks/sparqlxml-parse.js/actions?query=workflow%3ACI)

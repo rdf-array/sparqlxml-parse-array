@@ -910,4 +910,68 @@ describe('SparqlXmlParser', () => {
       return expect(parser.parseXmlBooleanStream(errorStream)).rejects.toBeTruthy();
     });
   });
+
+  describe('RDF- sequences', () => {
+    const parser = new SparqlXmlParser();
+
+    it('should convert a SPARQL XML response with a seq binding, nested ones included', async () => {
+      return expect(await arrayifyStream(parser.parseXmlResultsStream(streamifyString(`<?xml version="1.0"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head><variable name="list"/></head>
+  <results>
+    <result>
+      <binding name="list">
+        <seq>
+          <uri>http://example.org/a</uri>
+          <literal datatype="http://www.w3.org/2001/XMLSchema#integer">1</literal>
+          <seq><bnode>b</bnode></seq>
+          <seq></seq>
+        </seq>
+      </binding>
+    </result>
+  </results>
+</sparql>`)))).toEqual([
+        {
+          'list': DF.sequence([
+            DF.namedNode('http://example.org/a'),
+            DF.literal('1', DF.namedNode('http://www.w3.org/2001/XMLSchema#integer')),
+            DF.sequence([ DF.blankNode('b') ]),
+            DF.sequence([]),
+          ]),
+        },
+      ]);
+    });
+
+    it('should convert a seq inside a quoted triple and a quoted triple inside a seq', async () => {
+      return expect(await arrayifyStream(parser.parseXmlResultsStream(streamifyString(`<?xml version="1.0"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head><variable name="t"/><variable name="s"/></head>
+  <results>
+    <result>
+      <binding name="t">
+        <triple>
+          <subject><uri>http://example.org/s</uri></subject>
+          <predicate><uri>http://example.org/p</uri></predicate>
+          <object><seq><literal>x</literal></seq></object>
+        </triple>
+      </binding>
+      <binding name="s">
+        <seq>
+          <triple>
+            <subject><uri>http://example.org/s</uri></subject>
+            <predicate><uri>http://example.org/p</uri></predicate>
+            <object><literal>y</literal></object>
+          </triple>
+        </seq>
+      </binding>
+    </result>
+  </results>
+</sparql>`)))).toEqual([
+        {
+          't': DF.quad(DF.namedNode('http://example.org/s'), DF.namedNode('http://example.org/p'), DF.sequence([ DF.literal('x') ])),
+          's': DF.sequence([ DF.quad(DF.namedNode('http://example.org/s'), DF.namedNode('http://example.org/p'), DF.literal('y')) ]),
+        },
+      ]);
+    });
+  });
 });

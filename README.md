@@ -1,6 +1,6 @@
 <img src=".github/rdf-array-logo.png" alt="[sparqlxml-parse]" width="96" align="right">
 
-# sparqlxml-parse-array: sparqlxml-parse for RDF-
+# sparqlxml-parse-array: sparqlxml-parse for rdf-array
 
 **RDF-** fork of [sparqlxml-parse](https://github.com/rubensworks/sparqlxml-parse.js): a `<seq>` binding
 element, the SPARQL Results XML spelling of a **sequence** term that [jena-array](https://github.com/rdf-array/jena-array)

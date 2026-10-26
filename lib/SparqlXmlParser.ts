@@ -58,7 +58,7 @@ export class SparqlXmlParser {
     let currentBindingType: string = '';
     let currentBindingAnnotation: { language: string, direction?: 'ltr' | 'rtl' } | RDF.NamedNode | undefined;
     let currentText: string = '';
-    // RDF-: the elements of the <seq> elements being read, innermost last
+    // rdf-array: the elements of the <seq> elements being read, innermost last
     let currentSequences: RDF.Term[][] = [];
     let currentQuotedTriples: { currentComponent?: 'subject' | 'predicate' | 'object'; components: { subject?: RDF.Term; predicate?: RDF.Term; object?: RDF.Term } }[] = [];
     parser.on("error", errorListener);
@@ -87,7 +87,7 @@ export class SparqlXmlParser {
           currentQuotedTriples[currentQuotedTriples.length - 1].currentComponent = <any>tag.name;
         }
       } else if (tag.name === 'seq' && this.stackBeginsWith(stack, ['sparql', 'results', 'result', 'binding'])) {
-        // RDF-: a sequence term, one child element per element of the sequence
+        // rdf-array: a sequence term, one child element per element of the sequence
         currentSequences.push([]);
         currentBindingType = '';
         currentText = '';
@@ -142,11 +142,11 @@ export class SparqlXmlParser {
             errorListener(new Error(`Incomplete quoted triple on line ${parser.line + 1}`));
           }
         } else if (stack[stack.length - 1] === 'seq') {
-          // RDF-: the sequence of the elements read so far
+          // rdf-array: the sequence of the elements read so far
           const elements = currentSequences.pop();
           if (elements) {
             if (!this.dataFactory.sequence) {
-              errorListener(new Error('The data factory has no sequence(): RDF- needs rdf-data-factory-array'));
+              errorListener(new Error('The data factory has no sequence(): rdf-array needs rdf-data-factory-array'));
             } else {
               term = this.dataFactory.sequence(elements);
             }
@@ -157,7 +157,7 @@ export class SparqlXmlParser {
 
         if (term) {
           if (currentSequences.length > 0 && stack[stack.length - 2] === 'seq') {
-            // RDF-: an element of the enclosing sequence
+            // rdf-array: an element of the enclosing sequence
             currentSequences[currentSequences.length - 1].push(term);
           } else if (currentQuotedTriples.length > 0) {
             // If we're in a quoted triple, store the term inside the active quoted triple

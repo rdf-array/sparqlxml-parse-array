@@ -45,7 +45,7 @@ class SparqlXmlParser {
         let currentBindingType = '';
         let currentBindingAnnotation;
         let currentText = '';
-        // RDF-: the elements of the <seq> elements being read, innermost last
+        // rdf-array: the elements of the <seq> elements being read, innermost last
         let currentSequences = [];
         let currentQuotedTriples = [];
         parser.on("error", errorListener);
@@ -81,7 +81,7 @@ class SparqlXmlParser {
                 }
             }
             else if (tag.name === 'seq' && this.stackBeginsWith(stack, ['sparql', 'results', 'result', 'binding'])) {
-                // RDF-: a sequence term, one child element per element of the sequence
+                // rdf-array: a sequence term, one child element per element of the sequence
                 currentSequences.push([]);
                 currentBindingType = '';
                 currentText = '';
@@ -142,11 +142,11 @@ class SparqlXmlParser {
                     }
                 }
                 else if (stack[stack.length - 1] === 'seq') {
-                    // RDF-: the sequence of the elements read so far
+                    // rdf-array: the sequence of the elements read so far
                     const elements = currentSequences.pop();
                     if (elements) {
                         if (!this.dataFactory.sequence) {
-                            errorListener(new Error('The data factory has no sequence(): RDF- needs rdf-data-factory-array'));
+                            errorListener(new Error('The data factory has no sequence(): rdf-array needs rdf-data-factory-array'));
                         }
                         else {
                             term = this.dataFactory.sequence(elements);
@@ -158,7 +158,7 @@ class SparqlXmlParser {
                 }
                 if (term) {
                     if (currentSequences.length > 0 && stack[stack.length - 2] === 'seq') {
-                        // RDF-: an element of the enclosing sequence
+                        // rdf-array: an element of the enclosing sequence
                         currentSequences[currentSequences.length - 1].push(term);
                     }
                     else if (currentQuotedTriples.length > 0) {

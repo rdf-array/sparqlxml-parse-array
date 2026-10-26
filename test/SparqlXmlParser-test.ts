@@ -911,7 +911,7 @@ describe('SparqlXmlParser', () => {
     });
   });
 
-  describe('RDF- sequences', () => {
+  describe('rdf-array sequences', () => {
     const parser = new SparqlXmlParser();
 
     it('should convert a SPARQL XML response with a seq binding, nested ones included', async () => {
